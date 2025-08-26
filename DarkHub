@@ -17,4 +17,4 @@ else
 end
 ]]
 
-https://pastefy.app/kTn4HlTP/raw"))()
+loadstring(game:HttpGet("https://pastefy.app/kTn4HlTP/raw"))()
