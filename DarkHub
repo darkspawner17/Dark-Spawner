@@ -1,40 +1,13 @@
--- Full Working Demo UI Script (LocalScript) for StarterPlayerScripts
--- Cartoony, draggable intro, fullscreen 3-minute loading, sounds, animated hourglass,
--- then moveable main menu with minimize to blue thunder logo + demo feature actions.
+-- FULL SCRIPT GUI SYSTEM
+-- Made for your request (Intro + Loading + Main Menu with Features)
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = game.Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
 
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-
--- CONFIG
-local COUNTDOWN_TIME = 180 -- seconds (3 minutes)
-local SOUND_TICK_ASSET = "rbxassetid://9118823102" -- demo tick sound, replace if you want
-local SOUND_DONE_ASSET = "rbxassetid://184352137" -- demo ding, replace if you want
-
--- Helper: create common UI elements
-local function new(class, props)
-    local obj = Instance.new(class)
-    for k,v in pairs(props or {}) do
-        if k == "Parent" then
-            obj.Parent = v
-        else
-            obj[k] = v
-        end
-    end
-    return obj
-end
-
--- Make draggable for any frame with a handle (or the frame itself)
-local function makeDraggable(frame, handle)
-    handle = handle or frame
-    local dragging = false
-    local dragStart, startPos
-
-    handle.InputBegan:Connect(function(input)
+-- Utility: Draggable Frame
+local function makeDraggable(frame)
+    local dragging, dragInput, dragStart, startPos
+    frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
@@ -46,503 +19,70 @@ local function makeDraggable(frame, handle)
             end)
         end
     end)
-
-    handle.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
             local delta = input.Position - dragStart
-            frame.Position = UDim2.new(
-                startPos.X.Scale, startPos.X.Offset + delta.X,
-                startPos.Y.Scale, startPos.Y.Offset + delta.Y
-            )
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                       startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 end
 
--- Clear any previous UI with same name
-for _,v in ipairs(playerGui:GetChildren()) do
-    if v.Name == "CartoonyScriptUI" then v:Destroy() end
-end
+-- INTRO WARNING GUI
+local introGui = Instance.new("ScreenGui", PlayerGui)
+introGui.Name = "IntroGui"
 
-local screenGui = new("ScreenGui", {Parent = playerGui, Name = "CartoonyScriptUI", ResetOnSpawn = false})
+local introFrame = Instance.new("Frame", introGui)
+introFrame.Size = UDim2.new(0, 400, 0, 230)
+introFrame.Position = UDim2.new(0.5, -200, 0.5, -115)
+introFrame.BackgroundColor3 = Color3.fromRGB(80, 170, 255)
+introFrame.Active = true
+introFrame.Draggable = false
+makeDraggable(introFrame)
 
--- THUNDER LOGO (small circular icon) created upfront
-local thunderLogo = new("ImageButton", {
-    Parent = screenGui,
-    Size = UDim2.new(0,72,0,72),
-    Position = UDim2.new(0.92, -80, 0.88, -80), -- lower-right corner
-    BackgroundColor3 = Color3.fromRGB(0,140,255),
-    AutoButtonColor = true,
-    Visible = false
-})
-local tlCorner = new("UICorner", {Parent = thunderLogo, CornerRadius = UDim.new(1,0)})
--- If you have a thunder image asset, change Image property. Using an emoji fallback via TextLabel
--- We'll overlay a TextLabel to draw a cartoon thunder
-local tlLabel = new("TextLabel", {
-    Parent = thunderLogo,
-    Size = UDim2.new(1,0,1,0),
-    BackgroundTransparency = 1,
-    Text = "⚡",
-    TextScaled = true,
-    Font = Enum.Font.GothamBold,
-    TextColor3 = Color3.fromRGB(255,255,200)
-})
+local uiCorner = Instance.new("UICorner", introFrame)
+uiCorner.CornerRadius = UDim.new(0,15)
 
--- Utility: create a cute cloud background in a frame (cartoony feel)
-local function applyCartoonyStyle(frame)
-    frame.BackgroundTransparency = 0
-    frame.BorderSizePixel = 0
-    frame.BackgroundColor3 = Color3.fromRGB(230,230,255)
-    -- gradient overlay
-    local g = new("UIGradient", {Parent = frame})
-    g.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100,170,255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255,120,200))
-    }
-    g.Rotation = 45
-    local stroke = new("UIStroke", {Parent = frame, Color = Color3.fromRGB(40,40,80), Thickness = 3})
-    new("UICorner", {Parent = frame, CornerRadius = UDim.new(0,18)})
-end
+local title = Instance.new("TextLabel", introFrame)
+title.Size = UDim2.new(1, -60, 0, 40)
+title.Position = UDim2.new(0, 10, 0, 5)
+title.Text = "⚡ Script Notice"
+title.TextColor3 = Color3.fromRGB(255,255,0)
+title.Font = Enum.Font.Cartoon
+title.TextScaled = true
+title.BackgroundTransparency = 1
 
--- -------------------
--- Intro small cartoony window (draggable, minimize and close)
--- -------------------
-local intro = new("Frame", {
-    Parent = screenGui,
-    Size = UDim2.new(0,420,0,260),
-    Position = UDim2.new(0.5,-210,0.45,-130),
-    BackgroundTransparency = 1,
-    ZIndex = 2
-})
-applyCartoonyStyle(intro)
-makeDraggable(intro)
+local msg = Instance.new("TextLabel", introFrame)
+msg.Size = UDim2.new(1, -20, 0, 140)
+msg.Position = UDim2.new(0, 10, 0, 50)
+msg.TextWrapped = true
+msg.Text = "Before you use this script, make sure these are OFF in Delta Settings:\n\n- Anti-Scam\n- Verify Teleport\n- Anti-AFK\n\nAfter turning them off, press OK. Enjoy!"
+msg.TextColor3 = Color3.fromRGB(255,255,255)
+msg.Font = Enum.Font.Cartoon
+msg.TextScaled = true
+msg.BackgroundTransparency = 1
 
--- Title bar (custom)
-local introTitleBar = new("Frame", {
-    Parent = intro,
-    Size = UDim2.new(1,0,0,48),
-    Position = UDim2.new(0,0,0,0),
-    BackgroundTransparency = 1
-})
-local introTitle = new("TextLabel", {
-    Parent = introTitleBar,
-    Size = UDim2.new(1,-100,1,0),
-    Position = UDim2.new(0,20,0,0),
-    BackgroundTransparency = 1,
-    Text = "⚡ Before You Use",
-    TextScaled = true,
-    Font = Enum.Font.Cartoon,
-    TextColor3 = Color3.fromRGB(255,255,255)
-})
+local okBtn = Instance.new("TextButton", introFrame)
+okBtn.Size = UDim2.new(0, 120, 0, 40)
+okBtn.Position = UDim2.new(0.5, -60, 1, -50)
+okBtn.Text = "OK"
+okBtn.Font = Enum.Font.Cartoon
+okBtn.TextScaled = true
+okBtn.BackgroundColor3 = Color3.fromRGB(0,200,120)
+local okCorner = Instance.new("UICorner", okBtn)
+okCorner.CornerRadius = UDim.new(0,10)
 
--- top-right small buttons
-local introMin = new("TextButton", {
-    Parent = introTitleBar,
-    Size = UDim2.new(0,44,0,36),
-    Position = UDim2.new(1,-100,0,6),
-    Text = "-",
-    TextScaled = true,
-    Font = Enum.Font.GothamBold,
-    BackgroundColor3 = Color3.fromRGB(255,220,100)
-})
-new("UICorner", {Parent = introMin, CornerRadius = UDim.new(0,6)})
+local closeBtn = Instance.new("TextButton", introFrame)
+closeBtn.Size = UDim2.new(0,30,0,30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255,0,0)
+closeBtn.Font = Enum.Font.Cartoon
+closeBtn.TextScaled = true
 
-local introClose = new("TextButton", {
-    Parent = introTitleBar,
-    Size = UDim2.new(0,44,0,36),
-    Position = UDim2.new(1,-50,0,6),
-    Text = "X",
-    TextScaled = true,
-    Font = Enum.Font.GothamBold,
-    BackgroundColor3 = Color3.fromRGB(255,80,80)
-})
-new("UICorner", {Parent = introClose, CornerRadius = UDim.new(0,6)})
-
--- Body text
-local introBody = new("TextLabel", {
-    Parent = intro,
-    Size = UDim2.new(1,-40,0.6,0),
-    Position = UDim2.new(0,20,0.22,0),
-    BackgroundTransparency = 1,
-    TextWrapped = true,
-    Text = "Please turn OFF the following in Delta settings:\n\n• Anti-Scam\n• Verify Teleport\n• Anti-AFK\n\nPress OK to continue. Enjoy!",
-    TextScaled = true,
-    Font = Enum.Font.Cartoon,
-    TextColor3 = Color3.fromRGB(255,255,240)
-})
-
--- OK Button
-local introOK = new("TextButton", {
-    Parent = intro,
-    Size = UDim2.new(0,160,0,44),
-    Position = UDim2.new(0.5,-80,1,-60),
-    Text = "✅ OK",
-    TextScaled = true,
-    Font = Enum.Font.GothamBold,
-    BackgroundColor3 = Color3.fromRGB(0,200,120),
-    TextColor3 = Color3.fromRGB(255,255,255)
-})
-new("UICorner", {Parent = introOK, CornerRadius = UDim.new(0,10)})
-
--- Intro behavior
-introMin.MouseButton1Click:Connect(function()
-    intro.Visible = false
-    thunderLogo.Visible = true
-end)
-introClose.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-end)
-thunderLogo.MouseButton1Click:Connect(function()
-    -- if intro was hidden, show it back
-    if intro and intro.Parent then
-        intro.Visible = true
-        thunderLogo.Visible = false
-    end
-end)
-
--- -------------------
--- Loading Screen (full screen) with cartoony style, animated hourglass, sounds, countdown, progress bar
--- -------------------
-local function showLoadingThenMenu()
-    -- hide intro fully
-    if intro then intro:Destroy() end
-
-    -- Create fullscreen loading frame
-    local loading = new("Frame", {
-        Parent = screenGui,
-        Size = UDim2.new(1,0,1,0),
-        Position = UDim2.new(0,0,0,0),
-        BackgroundColor3 = Color3.fromRGB(0,0,0)
-    })
-
-    -- decorative clouds top-left and bottom-right (cartoony)
-    local cloud1 = new("ImageLabel", {
-        Parent = loading,
-        Size = UDim2.new(0,300,0,160),
-        Position = UDim2.new(0.05,0,0.05,0),
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://6023426912", -- soft cloud asset sample; it's decorative
-        ImageTransparency = 0.15
-    })
-    local cloud2 = new("ImageLabel", {
-        Parent = loading,
-        Size = UDim2.new(0,320,0,180),
-        Position = UDim2.new(0.65,0,0.75,0),
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://6023426912",
-        ImageTransparency = 0.12
-    })
-
-    -- Gradient big background
-    local bgGrad = new("UIGradient", {Parent = loading})
-    bgGrad.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(10,140,255)), -- blue
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255,60,180))  -- pink
-    }
-    bgGrad.Rotation = 90
-
-    -- Big cute rounded panel in center for content
-    local panel = new("Frame", {
-        Parent = loading,
-        Size = UDim2.new(0,600,0,380),
-        Position = UDim2.new(0.5,-300,0.5,-190),
-        BackgroundTransparency = 0
-    })
-    applyCartoonyStyle(panel)
-    panel.AnchorPoint = Vector2.new(0,0)
-    makeDraggable(panel)
-
-    -- Panel Title
-    local panelTitle = new("TextLabel", {
-        Parent = panel,
-        Size = UDim2.new(1,0,0,64),
-        Position = UDim2.new(0,0,0,0),
-        BackgroundTransparency = 1,
-        Text = "Loading... Please wait",
-        TextScaled = true,
-        Font = Enum.Font.Cartoon,
-        TextColor3 = Color3.fromRGB(255,255,255)
-    })
-
-    -- Hourglass big (animated rotation)
-    local hourglass = new("TextLabel", {
-        Parent = panel,
-        Size = UDim2.new(0,96,0,96),
-        Position = UDim2.new(0.5,-48,0.2,0),
-        BackgroundTransparency = 1,
-        Text = "⌛",
-        TextScaled = true,
-        Font = Enum.Font.GothamBold,
-        TextColor3 = Color3.fromRGB(255,255,255)
-    })
-
-    -- Small progress track and fill
-    local progressTrack = new("Frame", {
-        Parent = panel,
-        Size = UDim2.new(0,520,0,28),
-        Position = UDim2.new(0.5,-260,0.72,0),
-        BackgroundColor3 = Color3.fromRGB(255,255,255),
-    })
-    new("UICorner", {Parent = progressTrack, CornerRadius = UDim.new(0,14)})
-    local progressFill = new("Frame", {
-        Parent = progressTrack,
-        Size = UDim2.new(1,0,1,0),
-        Position = UDim2.new(0,0,0,0),
-        BackgroundColor3 = Color3.fromRGB(0,220,200)
-    })
-    new("UICorner", {Parent = progressFill, CornerRadius = UDim.new(0,14)})
-
-    -- Countdown label
-    local countdownLabel = new("TextLabel", {
-        Parent = panel,
-        Size = UDim2.new(1,0,0,48),
-        Position = UDim2.new(0,0,0.86,0),
-        BackgroundTransparency = 1,
-        Text = "180s",
-        TextScaled = true,
-        Font = Enum.Font.GothamBold,
-        TextColor3 = Color3.fromRGB(255,255,255)
-    })
-
-    -- Sound setup
-    local tickSound = new("Sound", {Parent = panel, SoundId = SOUND_TICK_ASSET, Volume = 0.8})
-    local doneSound = new("Sound", {Parent = panel, SoundId = SOUND_DONE_ASSET, Volume = 1})
-
-    -- Hourglass rotation animation
-    local rotAngle = 0
-    local rotConn
-    rotConn = RunService.RenderStepped:Connect(function(dt)
-        rotAngle = (rotAngle + 120 * dt) % 360
-        if hourglass and hourglass.Parent then
-            hourglass.Rotation = rotAngle
-        else
-            if rotConn then rotConn:Disconnect() end
-        end
-    end)
-
-    -- Countdown loop (with tick every 5 seconds and small beep each second optionally)
-    local total = COUNTDOWN_TIME
-    for i = total, 0, -1 do
-        -- update text and fill proportionally (fill decreases left to right)
-        countdownLabel.Text = tostring(i) .. "s remaining"
-        local proportion = i / total
-        progressFill.Size = UDim2.new(proportion,0,1,0)
-
-        -- play tick sound every 5 seconds, and small beep for last 5 seconds
-        if i % 5 == 0 then
-            pcall(function() tickSound:Play() end)
-        end
-        if i <= 5 and i > 0 then
-            pcall(function() tickSound:Play() end)
-        end
-
-        task.wait(1)
-    end
-
-    -- finished, play done sound
-    pcall(function() doneSound:Play() end)
-
-    -- cleanup loading UI
-    if rotConn then rotConn:Disconnect() end
-    loading:Destroy()
-
-    -- show main menu
-    createMainMenu()
-end
-
--- -------------------
--- Main Menu creation (moveable, minimize to thunder logo, close X)
--- -------------------
-function createMainMenu()
-    -- If there is already an existing menu, destroy it
-    if screenGui:FindFirstChild("MainMenuFrame") then
-        screenGui.MainMenuFrame:Destroy()
-    end
-
-    local menu = new("Frame", {
-        Parent = screenGui,
-        Name = "MainMenuFrame",
-        Size = UDim2.new(0,520,0,420),
-        Position = UDim2.new(0.5,-260,0.4,-210),
-        BackgroundColor3 = Color3.fromRGB(90,170,255),
-        ZIndex = 3
-    })
-    new("UICorner", {Parent = menu, CornerRadius = UDim.new(0,18)})
-    makeDraggable(menu)
-
-    -- Fancy title bar and title
-    local menuTitle = new("TextLabel", {
-        Parent = menu,
-        Size = UDim2.new(1,0,0,56),
-        Position = UDim2.new(0,0,0,0),
-        BackgroundTransparency = 1,
-        Text = "⚡ Main Feature Menu",
-        TextScaled = true,
-        Font = Enum.Font.Cartoon,
-        TextColor3 = Color3.fromRGB(255,255,255)
-    })
-
-    -- close & minimize on menu
-    local menuMin = new("TextButton", {
-        Parent = menu,
-        Size = UDim2.new(0,44,0,36),
-        Position = UDim2.new(1,-100,0,10),
-        Text = "-",
-        BackgroundColor3 = Color3.fromRGB(255,220,100),
-        TextScaled = true
-    })
-    new("UICorner", {Parent = menuMin, CornerRadius = UDim.new(0,6)})
-
-    local menuClose = new("TextButton", {
-        Parent = menu,
-        Size = UDim2.new(0,44,0,36),
-        Position = UDim2.new(1,-50,0,10),
-        Text = "X",
-        BackgroundColor3 = Color3.fromRGB(255,80,80),
-        TextScaled = true
-    })
-    new("UICorner", {Parent = menuClose, CornerRadius = UDim.new(0,6)})
-
-    -- Feature buttons container
-    local btnYStart = 0.2
-    local options = {"Auto Middle", "Pet Spawner", "Egg ESP", "Seed Spawner", "Auto Find Bug"}
-    for idx, opt in ipairs(options) do
-        local btn = new("TextButton", {
-            Parent = menu,
-            Size = UDim2.new(0.84,0,0.12,0),
-            Position = UDim2.new(0.08,0,btnYStart + (idx-1)*0.12,0),
-            Text = opt,
-            TextScaled = true,
-            Font = Enum.Font.GothamBold,
-            BackgroundColor3 = Color3.fromRGB(30,120,220),
-            TextColor3 = Color3.fromRGB(255,255,255)
-        })
-        new("UICorner", {Parent = btn, CornerRadius = UDim.new(0,10)})
-
-        -- Actual demo actions for each button
-        if opt == "Auto Middle" then
-            btn.MouseButton1Click:Connect(function()
-                local character = player.Character
-                if character and character:FindFirstChild("HumanoidRootPart") then
-                    -- safe demo: move to world origin or Baseplate position if exists
-                    local targetPos = Vector3.new(0, 5, 0)
-                    local baseplate = workspace:FindFirstChild("Baseplate") or workspace:FindFirstChild("baseplate")
-                    if baseplate and baseplate:IsA("BasePart") then
-                        targetPos = baseplate.Position + Vector3.new(0,5,0)
-                    end
-                    character.HumanoidRootPart.CFrame = CFrame.new(targetPos)
-                end
-            end)
-
-        elseif opt == "Pet Spawner" then
-            btn.MouseButton1Click:Connect(function()
-                -- spawn a friendly ball that follows player (simple BodyVelocity follow)
-                local pet = Instance.new("Part")
-                pet.Name = "DemoPet"
-                pet.Shape = Enum.PartType.Ball
-                pet.Size = Vector3.new(2,2,2)
-                pet.Color = Color3.fromRGB(255,200,0)
-                pet.Material = Enum.Material.Neon
-                pet.Anchored = false
-                pet.CanCollide = false
-                pet.Position = (player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position) or (workspace.CurrentCamera and workspace.CurrentCamera.CFrame.p)
-                pet.Parent = workspace
-
-                local attach = Instance.new("Folder", pet)
-                attach.Name = "DemoFollow"
-
-                -- simple follow using BodyPosition
-                local bp = Instance.new("BodyVelocity", pet)
-                bp.MaxForce = Vector3.new(1e5,1e5,1e5)
-                bp.Velocity = Vector3.new(0,0,0)
-                spawn(function()
-                    for i = 1, 30 do -- pet lasts ~30 seconds
-                        if not pet or not pet.Parent then break end
-                        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                        if hrp then
-                            local dir = (hrp.Position + Vector3.new(3,0,0) - pet.Position)
-                            bp.Velocity = dir * 2
-                        end
-                        task.wait(0.1)
-                    end
-                    if pet and pet.Parent then pet:Destroy() end
-                end)
-            end)
-
-        elseif opt == "Egg ESP" then
-            btn.MouseButton1Click:Connect(function()
-                -- add Highlight to any part/group named "Egg" in workspace for 20 seconds
-                local found = {}
-                for _,obj in ipairs(workspace:GetDescendants()) do
-                    if obj:IsA("BasePart") and obj.Name:lower():find("egg") then
-                        local hl = Instance.new("Highlight")
-                        hl.Adornee = obj
-                        hl.FillTransparency = 0.6
-                        hl.OutlineTransparency = 0
-                        hl.Parent = obj
-                        table.insert(found, hl)
-                    end
-                end
-                -- cleanup
-                delay(20, function()
-                    for _,h in ipairs(found) do if h and h.Parent then h:Destroy() end end
-                end)
-            end)
-
-        elseif opt == "Seed Spawner" then
-            btn.MouseButton1Click:Connect(function()
-                -- spawn small seed parts around player
-                local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                local basePos = root and root.Position or (workspace.CurrentCamera and workspace.CurrentCamera.CFrame.p)
-                for i = 1, 8 do
-                    local s = Instance.new("Part")
-                    s.Size = Vector3.new(0.6,0.6,0.6)
-                    s.Shape = Enum.PartType.Ball
-                    s.Material = Enum.Material.SmoothPlastic
-                    s.Color = Color3.fromRGB(200,120,60)
-                    s.Anchored = false
-                    s.CanCollide = true
-                    s.Position = basePos + Vector3.new(math.random(-6,6), 3 + math.random(), math.random(-6,6))
-                    s.Parent = workspace
-                    -- let physics settle then remove after 25s
-                    delay(25, function() if s and s.Parent then s:Destroy() end end)
-                end
-            end)
-
-        elseif opt == "Auto Find Bug" then
-            btn.MouseButton1Click:Connect(function()
-                -- search workspace for parts named "bug" highlight and move camera to first found
-                local firstFound = nil
-                for _,obj in ipairs(workspace:GetDescendants()) do
-                    if obj:IsA("BasePart") and obj.Name:lower():find("bug") then
-                        if not firstFound then firstFound = obj end
-                        local hl = Instance.new("Highlight")
-                        hl.Adornee = obj
-                        hl.FillTransparency = 0.6
-                        hl.OutlineColor = Color3.fromRGB(255,50,50)
-                        hl.Parent = obj
-                        delay(15, function() if hl and hl.Parent then hl:Destroy() end end)
-                    end
-                end
-                if firstFound and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    -- move player near it as a demo
-                    player.Character.HumanoidRootPart.CFrame = CFrame.new(firstFound.Position + Vector3.new(0,5,0))
-                end
-            end)
-        end
-    end
-
-    -- Menu close and minimize behaviors
-    menuClose.MouseButton1Click:Connect(function()
-        screenGui:Destroy()
-    end)
-    menuMin.MouseButton1Click:Connect(function()
-        menu.Visible = false
-        thunderLogo.Visible = true
-    end)
-    thunderLogo.MouseButton1Click:Connect(function()
-        menu.Visible = true
-        thunderLogo.Visible = false
-    end)
-end
-
--- Kick off:
+local minBtn = Instance.new("TextButton", introFr
