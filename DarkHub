@@ -1,20 +1,174 @@
-local code = [[
-print("===================================")
-print(" Before you use this script,")
-print(" please read the instructions:")
-print(" - Make sure everything is set.")
-print(" - Click OK when you're ready.")
-print("===================================")
+-- MADE BY RICHMON REQUEST (FULL WORKING VERSION)
+local plr = game.Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+gui.Parent = plr:WaitForChild("PlayerGui")
+gui.ResetOnSpawn = false
 
-io.write("Type OK to continue: ")
-local input = io.read()
+-- INTRO FRAME
+local introFrame = Instance.new("Frame")
+introFrame.Size = UDim2.new(0.4,0,0.4,0)
+introFrame.Position = UDim2.new(0.3,0,0.3,0)
+introFrame.Active = true
+introFrame.Draggable = true
+introFrame.Parent = gui
+Instance.new("UICorner", introFrame)
 
-if input == "OK" or input == "ok" then
-    print("Great! You're good to go!")
-    -- continue to the main game loop here
-else
-    print("You did not type OK. Exiting...")
-end
-]]
+local introGradient = Instance.new("UIGradient", introFrame)
+introGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255,100,200))
+}
+introGradient.Rotation = 45
 
-loadstring(game:HttpGet("https://pastefy.app/kTn4HlTP/raw"))()
+local titleBar = Instance.new("Frame", introFrame)
+titleBar.Size = UDim2.new(1,0,0.15,0)
+titleBar.BackgroundColor3 = Color3.fromRGB(60,120,200)
+titleBar.Parent = introFrame
+Instance.new("UICorner", titleBar)
+
+local titleText = Instance.new("TextLabel", titleBar)
+titleText.Size = UDim2.new(0.7,0,1,0)
+titleText.Text = "⚠️ Script Notice"
+titleText.TextColor3 = Color3.fromRGB(255,255,255)
+titleText.Font = Enum.Font.Cartoon
+titleText.TextScaled = true
+titleText.BackgroundTransparency = 1
+titleText.Parent = titleBar
+
+local minBtn = Instance.new("TextButton", titleBar)
+minBtn.Size = UDim2.new(0.15,0,1,0)
+minBtn.Position = UDim2.new(0.7,0,0,0)
+minBtn.Text = "-"
+minBtn.BackgroundColor3 = Color3.fromRGB(0,150,255)
+minBtn.TextColor3 = Color3.fromRGB(255,255,255)
+minBtn.TextScaled = true
+minBtn.Font = Enum.Font.Cartoon
+minBtn.Parent = titleBar
+Instance.new("UICorner", minBtn)
+
+local closeBtn = Instance.new("TextButton", titleBar)
+closeBtn.Size = UDim2.new(0.15,0,1,0)
+closeBtn.Position = UDim2.new(0.85,0,0,0)
+closeBtn.Text = "X"
+closeBtn.BackgroundColor3 = Color3.fromRGB(255,80,120)
+closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.Cartoon
+closeBtn.Parent = titleBar
+Instance.new("UICorner", closeBtn)
+
+local bodyText = Instance.new("TextLabel", introFrame)
+bodyText.Size = UDim2.new(1,-20,0.6,0)
+bodyText.Position = UDim2.new(0,10,0.2,0)
+bodyText.TextWrapped = true
+bodyText.Text = "Before using this script, make sure the following are OFF in Delta settings:\n\n- Anti-Scam\n- Verify Teleport\n- Anti-AFK\n\nPress OK to continue."
+bodyText.TextColor3 = Color3.fromRGB(255,255,255)
+bodyText.Font = Enum.Font.Cartoon
+bodyText.TextScaled = true
+bodyText.BackgroundTransparency = 1
+bodyText.Parent = introFrame
+
+local okBtn = Instance.new("TextButton", introFrame)
+okBtn.Size = UDim2.new(0.4,0,0.15,0)
+okBtn.Position = UDim2.new(0.3,0,0.85,0)
+okBtn.Text = "✅ OK"
+okBtn.BackgroundColor3 = Color3.fromRGB(0,200,150)
+okBtn.TextColor3 = Color3.fromRGB(255,255,255)
+okBtn.TextScaled = true
+okBtn.Font = Enum.Font.Cartoon
+okBtn.Parent = introFrame
+Instance.new("UICorner", okBtn)
+
+-- Minimize Function
+local minimized = false
+minBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    for _,v in ipairs(introFrame:GetChildren()) do
+        if v ~= titleBar and v ~= introGradient then v.Visible = not minimized end
+    end
+    introFrame.Size = minimized and UDim2.new(0.4,0,0.1,0) or UDim2.new(0.4,0,0.4,0)
+end)
+
+-- Close Button
+closeBtn.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+-- OK → LOADING SCREEN
+okBtn.MouseButton1Click:Connect(function()
+    introFrame:Destroy()
+
+    local loadFrame = Instance.new("Frame", gui)
+    loadFrame.Size = UDim2.new(1,0,1,0)
+    local gradient = Instance.new("UIGradient", loadFrame)
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(0,170,255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255,100,200))
+    }
+    gradient.Rotation = 45
+
+    local hourglass = Instance.new("TextLabel", loadFrame)
+    hourglass.Size = UDim2.new(0.2,0,0.2,0)
+    hourglass.Position = UDim2.new(0.4,0,0.25,0)
+    hourglass.Text = "⌛"
+    hourglass.TextColor3 = Color3.fromRGB(255,255,255)
+    hourglass.TextScaled = true
+    hourglass.Font = Enum.Font.Cartoon
+    hourglass.BackgroundTransparency = 1
+
+    task.spawn(function()
+        local rot = 0
+        while hourglass.Parent do
+            rot = rot + 15
+            hourglass.Rotation = rot % 360
+            task.wait(0.1)
+        end
+    end)
+
+    local loadText = Instance.new("TextLabel", loadFrame)
+    loadText.Size = UDim2.new(1,0,0.1,0)
+    loadText.Position = UDim2.new(0,0,0.5,0)
+    loadText.Text = "Please Wait..."
+    loadText.TextColor3 = Color3.fromRGB(255,255,255)
+    loadText.Font = Enum.Font.Cartoon
+    loadText.TextScaled = true
+    loadText.BackgroundTransparency = 1
+
+    local progressLine = Instance.new("Frame", loadFrame)
+    progressLine.Size = UDim2.new(1,0,0.03,0)
+    progressLine.Position = UDim2.new(0,0,0.6,0)
+    progressLine.BackgroundColor3 = Color3.fromRGB(255,255,255)
+
+    local countdown = Instance.new("TextLabel", loadFrame)
+    countdown.Size = UDim2.new(1,0,0.05,0)
+    countdown.Position = UDim2.new(0,0,0.65,0)
+    countdown.TextColor3 = Color3.fromRGB(255,255,0)
+    countdown.TextScaled = true
+    countdown.Font = Enum.Font.Cartoon
+    countdown.BackgroundTransparency = 1
+    countdown.Text = "Time Left: 180s"
+
+    -- Countdown Logic
+    for i=180,0,-1 do
+        countdown.Text = "Time Left: "..i.."s"
+        progressLine.Size = UDim2.new(i/180,0,0.03,0)
+        task.wait(1)
+    end
+
+    loadFrame:Destroy()
+
+    -- SUCCESS POPUP
+    local success = Instance.new("TextLabel", gui)
+    success.Size = UDim2.new(0.4,0,0.2,0)
+    success.Position = UDim2.new(0.3,0,0.4,0)
+    success.Text = "✅ Script Loaded Successfully!"
+    success.TextColor3 = Color3.fromRGB(0,255,100)
+    success.Font = Enum.Font.Cartoon
+    success.TextScaled = true
+    success.BackgroundTransparency = 0.3
+    success.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    Instance.new("UICorner", success)
+
+    task.wait(3)
+    success:Destroy()
+end)
